@@ -9,7 +9,7 @@ class CompressController extends Controller
 	const FILEPATH = "C:/Users/Administrator/Desktop/test.txt";
 	
 	public $countArr = array();
-
+	public $dict;
 	//入口函数
 	public function execute() 
 	{
@@ -28,6 +28,9 @@ class CompressController extends Controller
 		//构建哈夫曼树
 		$huffmanTree = $this->createHuffmanTree($this->countArr);
 
+		$this->dict = array();
+		$this->codeHuffman(current($huffmanTree),'', $this->dict);
+		print_r($this->dict);exit;
 		//哈夫曼编码
 		
 		fclose($file);
@@ -138,8 +141,14 @@ class CompressController extends Controller
 		return $huffmanTree;
 	}
 
-	private function codeHuffman()
+	//哈夫曼编码
+	private function codeHuffman($indexNode, $code='', &$dict)
 	{
-		
+		if (isset($indexNode['ch'])) {
+			$dict[$indexNode['ch']]['code'] = $code; 
+		} else {
+			$this->codeHuffman($indexNode['left'], $code.'0', $dict);
+			$this->codeHuffman($indexNode['right'], $code.'1', $dict);		
+		}
 	}
 }
