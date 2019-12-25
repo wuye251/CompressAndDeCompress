@@ -14,3 +14,8 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::any('compress',   ['uses' => 'FileCompress\CompressController@execute']);
+
+
+Route::any('uncompress', ['uses' => 'FileCompress\UnCompressController@execute']);
