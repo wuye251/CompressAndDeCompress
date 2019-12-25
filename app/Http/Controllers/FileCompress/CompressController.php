@@ -10,6 +10,7 @@ class CompressController extends Controller
 	
 	public $countArr = array();
 	public $dict;
+
 	//入口函数
 	public function execute() 
 	{
@@ -21,19 +22,34 @@ class CompressController extends Controller
 			return -1;
 		}
 
+		
+		$compressFile = $this->newCompressFile();
+
 		//文件存在 首先统计文件内容字符个数
 		$this->charCount($file);
 		//将统计的字符进行排序
-		$this->countArr = $this->quickSort($this->countArr);
+		$sortArr = $this->quickSort($this->countArr);
 		//构建哈夫曼树
-		$huffmanTree = $this->createHuffmanTree($this->countArr);
+		$huffmanTree = $this->createHuffmanTree($sortArr);
 
 		$this->dict = array();
-		$this->codeHuffman(current($huffmanTree),'', $this->dict);
-		print_r($this->dict);exit;
 		//哈夫曼编码
-		
+		$this->codeHuffman(current($huffmanTree),'', $this->dict);
+
 		fclose($file);
+		$file = @fopen(self::FILEPATH, 'r');
+		if (!$file) {
+			return -1;
+		}
+		//压缩文件
+		if (-1 === $this->compressFile($file, $compressFile, $sortArr)) {
+			return -1;
+		}
+		return 'ok,compress finish';
+
+
+		fclose($file);
+		fclose($compressFile);
 	}
 
 	//遍历文件，统计各个字符个数
@@ -96,14 +112,14 @@ class CompressController extends Controller
 	}
 
 	//哈弗曼树构建
-	private function createHuffmanTree(&$countArr)
+	private function createHuffmanTree($countArr)
 	{
-		$huffmanTree = $this->countArr;
+		$huffmanTree = $countArr;
 		$len = count($huffmanTree);
 		//内容为空 或 为1
 		if ($len <= 1)
 		{
-			return $this->countArr;
+			return $countArr;
 		}
 
 		$curLen = $len;
@@ -133,8 +149,6 @@ class CompressController extends Controller
 				'right' => $node2,
 			];
 
-			print_r($huffmanTree);
-			echo "<br>";
 			$huffmanTree = $this->quickSort($huffmanTree);
 		}
 
@@ -150,5 +164,66 @@ class CompressController extends Controller
 			$this->codeHuffman($indexNode['left'], $code.'0', $dict);
 			$this->codeHuffman($indexNode['right'], $code.'1', $dict);		
 		}
+	}
+
+	private function compressFile($inputFile, $outputFile, &$countArr)
+	{
+		$stringDict = serialize($this->dict);
+		$stringCountCh = serialize($countArr);
+
+		$header = pack('VV', strlen($stringDict), strlen($stringCountCh));
+
+		fwrite($outputFile, $header);
+
+		fwrite($outputFile, $stringDict);
+
+		$buff = '';
+		while (!feof($inputFile)) {
+			$ch = fgetc($inputFile);
+			if (!isset($this->dict[$ch])) {
+				return -1;
+			}
+			$buff .= $this->dict[$ch]['code'];
+			while (isset($buff[7])) {
+
+				$char = bindec(substr($buff, 0, 8));
+				fwrite($outputFile, $char);
+
+				$buff = substr($buff, 8);
+			}
+
+		}
+
+		//剩余buff中还有内容表示 不够8bite  需要凑够并插入
+		if (!empty($buff)) {
+			$char = bindec(str_pad($buff, 8, '0'));
+			fwrite($outputFile, $char);
+		}		
+		return 'success';
+	}
+
+	private function newCompressFile()
+	{
+		//目录
+		$savePath = dirname(self::FILEPATH);
+
+		$inputFileName = basename(self::FILEPATH);
+
+		//分解文件名和后缀名  取文件名
+		//Array ( [0] => test [1] => txt )
+		$arrFileInfo=explode('.',$inputFileName); 
+
+		$saveName = $arrFileInfo[0] . '.compress';
+
+		//新建文件
+		$saveFilePath = $savePath . '/' . $saveName;
+
+		//若文件已存在，先删除，在新建
+		//已存在，直接清空重写
+
+		$compressFile = fopen($saveFilePath, 'w');
+
+
+		return $compressFile;
 	}
 }
