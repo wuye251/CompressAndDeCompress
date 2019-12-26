@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\FileCompress;
 use App\Http\Controllers\Controller;
 
+use App\Http\Controllers\FileCompress;
 
 class UnCompressController extends Controller
 {
@@ -16,58 +17,68 @@ class UnCompressController extends Controller
 
 		$inputFile = self::FILEPATH;
 
-		// $file = @fopen($inputFile, 'r');
-
-		// if (!$file) {
-			// return -1;
-		// }
-
-		// $this->format = fgets($file);
-
-
 		$outputFile = $this->newUnCompressFile();
 
+		//获取压缩文件内容
 		$content = file_get_contents($inputFile);
 
-		$arrCountInfo = $this->getCountInfo($inputFile);
+		$arrCountInfo = $this->getCountInfo($content);
+
+		//将之前序列化的dictLen反序列化
 		$dict = unserialize(substr($content, 8, $arrCountInfo['dictLen']));
 		// $dict =  $this->getInfoToUnserialize($content, 'dictLen');
-		
+
+		//将编码 和 键 对换  后面读取文件内容可以通过编码快速找到
 		$dict = array_flip($dict);
 
+		//记录文件内容长度 以及 文件内容
 		$bin = substr($content, 8 + $arrCountInfo['dictLen']);
 
-		print_r($bin);exit;
-		$output = '';
-		$key = '';
-		$decodedLen = 0;
-		$i = 0;
-		while (isset($bin[$i]) && $decodedLen !== $arrCountInfo['contentLen']) {
+		//釋放content内容 防止文件内容过大  内存浪费
+		unset($content);
 
-			$bits = decbin(ord($bin[$i]));
-			$bits = str_pad($bits, 8,'0', STR_PAD_LEFT);
-			for ($j = 0; $j !== 8; $j++) {
-        		// 每拼接上 1-bit，就去与字典比对是否能解码出字符
-        		$key .= $bits[$j];
-        		if (isset($dict[$key])) {
-            		$output .= $dict[$key];
-            		$key = '';
-            		$decodedLen++;
-            		if ($decodedLen === $arrCountInfo['contentLen']) {
-                		break;
-            		}
-        		}
-    		}
-    		$i++;
+		$compContentLen = strlen($bin);
+		$contentIndex = 0;
+		$outputContent = '';
+		//从文件内容开始遍历
+		$curIndex = 0;
+		$codeKey = '';
+		while ($contentIndex < $compContentLen && $curIndex < $arrCountInfo['contentLen']) {
+			//当前字符的二进制
+			$binaryCh = decbin(ord($bin[$contentIndex]));
+
+			//凑够八个字节  不够向左侧添0  不够8个字节情况 00000001 转为了1
+			$binaryCh = str_pad($binaryCh, 8,'0', STR_PAD_LEFT);
+
+			$biteIndex = 0;
+
+			for(; $biteIndex < 8; $biteIndex++) {
+				//每增加一bite都去查找dict是否有对应键
+				$codeKey .= $binaryCh[$biteIndex];
+				
+				//如果有对应字典  则将对应的解压字符转换并 添加在输出文件后
+				if (isset($dict[$codeKey])) {
+					$outputContent .= $dict[$codeKey]; 
+					// print_r($outputContent);echo "<br>"; 
+					$codeKey = '';
+					$curIndex++;
+				}
+			}
+			$contentIndex++;
 		}
 
-		$ret = file_put_contents($outputFile, $output);
+		$ret = file_put_contents($outputFile, $outputContent);
 		
 		// fclose($file);
 		// fclose($outputFile);		
 		return 'success';
 	}
 
+	/**
+	 * 将头部的文件相关描述信息解析
+	 * @param  [string] $content [文件内容]
+	 * @return [array]          [dictLen信息和contenLen信息]
+	 */
 	private function getCountInfo($content)
 	{
 
@@ -75,6 +86,7 @@ class UnCompressController extends Controller
 		if (empty($arrCountInfo)) {
 			return -1;
 		}
+
 		return $arrCountInfo;
 	}
 
@@ -97,11 +109,10 @@ class UnCompressController extends Controller
 		$arrFileInfo = explode('.',$inputFileName); 
 
 		// $saveName = $arrFileInfo[0] . ".$this->format";
-		$saveName = $arrFileInfo[0] . ".txt";
+		$saveName = $arrFileInfo[0] . '1' . ".txt";
 
 		//新建文件
 		$saveFilePath = $savePath . "/$saveName" ;
-
 		//若文件已存在，先删除，在新建
 		//已存在，直接清空重写
 		// $outputFile = fopen($saveFilePath, 'w');
@@ -111,3 +122,4 @@ class UnCompressController extends Controller
 	}
 
 }
+
