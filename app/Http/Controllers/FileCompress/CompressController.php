@@ -174,10 +174,10 @@ class CompressController extends Controller
 		$stringDict    = serialize($this->dict);
 
 		$header = pack('VV', strlen($stringDict), strlen($content));
-		
+
 		// 字典长度+文件内容长度   写入
 		fwrite($outputFile, $header);
-		//  序列化字典写入
+		// //  序列化字典写入
 		fwrite($outputFile, $stringDict);
 
 
@@ -198,7 +198,7 @@ class CompressController extends Controller
 				//将对应的二进制转为十进制存储
 				$char = bindec(substr($buff, 0, 8));
 				//写入
-				fwrite($outputFile, $char);
+				fwrite($outputFile, chr($char));
 				//截断八位
 				$buff = substr($buff, 8);
 			}
