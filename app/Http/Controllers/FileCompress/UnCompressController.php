@@ -51,43 +51,7 @@ class UnCompressController extends Controller
 		// fclose($outputFile);		
 		return 'success';
 	}
-	private function getComressFile($contend, $contendLen, $outputFile)
-	{
-		$compContentLen = strlen($bin);
-		
-		$contentIndex = 0;
-		$outputContent = '';
-		//从文件内容开始遍历
-		$curIndex = 0;
-		$codeKey = '';
 
-		while ($contentIndex < $compContentLen && $curIndex < $contendLen) {
-			//当前字符的二进制
-			$binaryCh = decbin(ord($bin[$contentIndex]));
-
-			//凑够八个字节  不够向左侧添0  不够8个字节情况 00000001 转为了1
-			$binaryCh = str_pad($binaryCh, 8,'0', STR_PAD_LEFT);
-
-			$biteIndex = 0;
-
-			for(; $biteIndex < 8; $biteIndex++) {
-				//每增加一bite都去查找dict是否有对应键
-				$codeKey .= $binaryCh[$biteIndex];
-				
-				//如果有对应字典  则将对应的解压字符转换并 添加在输出文件后
-				if (isset($dict[$codeKey])) {
-					$outputContent .= $dict[$codeKey]; 
-					// print_r($outputContent);echo "<br>"; 
-					$codeKey = '';
-					$curIndex++;
-				}
-			}
-			$contentIndex++;
-		}
-
-		$ret = file_put_contents($outputFile, $outputContent);
-		return $ret;
-	}
 	/**
 	 * 将头部的文件相关描述信息解析
 	 * @param  [string] $content [文件内容]
@@ -135,5 +99,49 @@ class UnCompressController extends Controller
 		return $saveFilePath;
 	}
 
+
+	/**
+	 * 转换解压文件
+	 * @param  [string] $contend    [文件内容]
+	 * @param  [int]    $contendLen [文件长度]
+	 * @param  [PATH] $outputFile   [输出文件]
+	 */
+	private function getComressFile($contend, $contendLen, $outputFile)
+	{
+		$compContentLen = strlen($bin);
+		
+		$contentIndex = 0;
+		$outputContent = '';
+		//从文件内容开始遍历
+		$curIndex = 0;
+		$codeKey = '';
+
+		while ($contentIndex < $compContentLen && $curIndex < $contendLen) {
+			//当前字符的二进制
+			$binaryCh = decbin(ord($bin[$contentIndex]));
+
+			//凑够八个字节  不够向左侧添0  不够8个字节情况 00000001 转为了1
+			$binaryCh = str_pad($binaryCh, 8,'0', STR_PAD_LEFT);
+
+			$biteIndex = 0;
+
+			for(; $biteIndex < 8; $biteIndex++) {
+				//每增加一bite都去查找dict是否有对应键
+				$codeKey .= $binaryCh[$biteIndex];
+				
+				//如果有对应字典  则将对应的解压字符转换并 添加在输出文件后
+				if (isset($dict[$codeKey])) {
+					$outputContent .= $dict[$codeKey]; 
+					// print_r($outputContent);echo "<br>"; 
+					$codeKey = '';
+					$curIndex++;
+				}
+			}
+			$contentIndex++;
+		}
+
+		$ret = file_put_contents($outputFile, $outputContent);
+		return $ret;
+	}
 }
 
