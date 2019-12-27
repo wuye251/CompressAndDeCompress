@@ -8,9 +8,10 @@ use App\Http\Controllers\FileCompress;
 class UnCompressController extends Controller
 {
 
-	const FILEPATH = "C:/Users/Administrator/Desktop/test.compress";
+	const FILEPATH = "C:/Users/Administrator/Desktop/test123.compress";
 
 	public $format;
+	public $type;
 
 	public function execute()
 	{
@@ -24,26 +25,43 @@ class UnCompressController extends Controller
 
 		$arrCountInfo = $this->getCountInfo($content);
 
+
+		$this->type = unserialize(substr($content, 12, $arrCountInfo['filetype']));
 		//将之前序列化的dictLen反序列化
-		$dict = unserialize(substr($content, 8, $arrCountInfo['dictLen']));
+		// $dict = unserialize(substr($content, 12 + $arrCountInfo['filetype'], $arrCountInfo['dictLen']));
+		$dict = substr($content, 12 + $arrCountInfo['filetype'], $arrCountInfo['dictLen']);
+		print_r($dict);exit;
+
 		// $dict =  $this->getInfoToUnserialize($content, 'dictLen');
 
 		//将编码 和 键 对换  后面读取文件内容可以通过编码快速找到
 		$dict = array_flip($dict);
 
 		//记录文件内容长度 以及 文件内容
-		$bin = substr($content, 8 + $arrCountInfo['dictLen']);
+		$bin = substr($content, 12 + $arrCountInfo['dictLen'] + $arrCountInfo['filetype']);
 
 		//釋放content内容 防止文件内容过大  内存浪费
 		unset($content);
 
+		$this->getComressFile($bin);
+		
+		
+		
+		// fclose($file);
+		// fclose($outputFile);		
+		return 'success';
+	}
+	private function getComressFile($contend, $contendLen, $outputFile)
+	{
 		$compContentLen = strlen($bin);
+		
 		$contentIndex = 0;
 		$outputContent = '';
 		//从文件内容开始遍历
 		$curIndex = 0;
 		$codeKey = '';
-		while ($contentIndex < $compContentLen && $curIndex < $arrCountInfo['contentLen']) {
+
+		while ($contentIndex < $compContentLen && $curIndex < $contendLen) {
 			//当前字符的二进制
 			$binaryCh = decbin(ord($bin[$contentIndex]));
 
@@ -68,12 +86,8 @@ class UnCompressController extends Controller
 		}
 
 		$ret = file_put_contents($outputFile, $outputContent);
-		
-		// fclose($file);
-		// fclose($outputFile);		
-		return 'success';
+		return $ret;
 	}
-
 	/**
 	 * 将头部的文件相关描述信息解析
 	 * @param  [string] $content [文件内容]
@@ -82,7 +96,7 @@ class UnCompressController extends Controller
 	private function getCountInfo($content)
 	{
 
-		$arrCountInfo = unpack('VdictLen/VcontentLen', $content);
+		$arrCountInfo = unpack('VdictLen/VcontentLen/Vfiletype', $content);
 		if (empty($arrCountInfo)) {
 			return -1;
 		}
@@ -109,7 +123,7 @@ class UnCompressController extends Controller
 		$arrFileInfo = explode('.',$inputFileName); 
 
 		// $saveName = $arrFileInfo[0] . ".$this->format";
-		$saveName = $arrFileInfo[0] . '1' . ".txt";
+		$saveName = $arrFileInfo[0] . '1' . "$this->type";
 
 		//新建文件
 		$saveFilePath = $savePath . "/$saveName" ;
