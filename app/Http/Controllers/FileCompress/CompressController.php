@@ -173,7 +173,7 @@ class CompressController extends Controller
 
 		$stringDict    = serialize($this->dict);
 
-		$header = pack('VV', strlen($stringDict), strlen($content));
+		$header = pack('VVV', strlen($this->format), strlen($stringDict), strlen($content));
 
 		// 字典长度+文件内容长度   写入
 		fwrite($outputFile, $header);

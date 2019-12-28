@@ -31,7 +31,6 @@ class UnCompressController extends Controller
 		$this->type = unserialize(substr($content, 12, $arrCountInfo['filetype']));
 		//将之前序列化的dictLen反序列化
 		$dict = unserialize(substr($content, 12 + $arrCountInfo['filetype'], $arrCountInfo['dictLen']));
-// 		$dict = substr($content, 12 + $arrCountInfo['filetype'], $arrCountInfo['dictLen']);
 // 		print_r($dict);exit;
 
 		// $dict =  $this->getInfoToUnserialize($content, 'dictLen');
@@ -40,17 +39,13 @@ class UnCompressController extends Controller
 		$dict = array_flip($dict);
 
 		//记录文件内容长度 以及 文件内容
-		$bin = substr($content, 12 + $arrCountInfo['dictLen'] + $arrCountInfo['filetype']);
+		$bin = substr($content, 12 + $arrCountInfo['filetype'] + $arrCountInfo['dictLen']);
 
 		//釋放content内容 防止文件内容过大  内存浪费
 		unset($content);
 
 		$this->getComressFile($bin);
-		
-		
-		
-		// fclose($file);
-		// fclose($outputFile);		
+			
 		return 'success';
 	}
 
@@ -62,7 +57,7 @@ class UnCompressController extends Controller
 	private function getCountInfo($content)
 	{
 
-		$arrCountInfo = unpack('VdictLen/VcontentLen/Vfiletype', $content);
+		$arrCountInfo = unpack('Vfiletype/VdictLen/VcontentLen', $content);
 		if (empty($arrCountInfo)) {
 			return -1;
 		}
@@ -70,12 +65,12 @@ class UnCompressController extends Controller
 		return $arrCountInfo;
 	}
 
-	private function getInfoToUnserialize($content, $getKey)
-	{
-		$retInfo = unserialize(substr($content, 8, $content[$getKey]));
+// 	private function getInfoToUnserialize($content, $getKey)
+// 	{
+// 		$retInfo = unserialize(substr($content, 8, $content[$getKey]));
 
-		return $retInfo;
-	}
+// 		return $retInfo;
+// 	}
 
 	private function newUnCompressFile()
 	{
