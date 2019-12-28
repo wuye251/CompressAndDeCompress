@@ -3,34 +3,36 @@
 namespace App\Http\Controllers\FileCompress;
 use App\Http\Controllers\Controller;
 
-use App\Http\Controllers\FileCompress;
+// use App\Http\Controllers\FileCompress;
 
 class UnCompressController extends Controller
 {
 
 	const FILEPATH = "C:/Users/Administrator/Desktop/test123.compress";
 
-	public $format;
-	public $type;
+	public $format;   
+	public $type;     //读取到解压文件的类型
 
 	public function execute()
 	{
 
 		$inputFile = self::FILEPATH;
 
+		//生成解压文件路径
 		$outputFile = $this->newUnCompressFile();
 
 		//获取压缩文件内容
 		$content = file_get_contents($inputFile);
 
+		//压缩文件中的配置内容
 		$arrCountInfo = $this->getCountInfo($content);
 
-
+		//读取配置信息中压缩文件类型
 		$this->type = unserialize(substr($content, 12, $arrCountInfo['filetype']));
 		//将之前序列化的dictLen反序列化
-		// $dict = unserialize(substr($content, 12 + $arrCountInfo['filetype'], $arrCountInfo['dictLen']));
-		$dict = substr($content, 12 + $arrCountInfo['filetype'], $arrCountInfo['dictLen']);
-		print_r($dict);exit;
+		$dict = unserialize(substr($content, 12 + $arrCountInfo['filetype'], $arrCountInfo['dictLen']));
+// 		$dict = substr($content, 12 + $arrCountInfo['filetype'], $arrCountInfo['dictLen']);
+// 		print_r($dict);exit;
 
 		// $dict =  $this->getInfoToUnserialize($content, 'dictLen');
 
@@ -91,10 +93,6 @@ class UnCompressController extends Controller
 
 		//新建文件
 		$saveFilePath = $savePath . "/$saveName" ;
-		//若文件已存在，先删除，在新建
-		//已存在，直接清空重写
-		// $outputFile = fopen($saveFilePath, 'w');
-
 
 		return $saveFilePath;
 	}
