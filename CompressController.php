@@ -8,7 +8,7 @@ class CompressController extends Controller
 	//测试文件路径
 	const FILEPATH = "C:/Users/Administrator/Desktop/test.txt";
 	
-	public $content;
+	// public $content;
 	public $countArr = array();
 	public $dict = array();
 	public $format;
@@ -30,8 +30,11 @@ class CompressController extends Controller
 		$this->charCount($content);
 
 		//将统计的字符进行排序
-		$sortArr = $this->quickSort($this->countArr);
+		//快排递归层数过多  存在问题
+		//$sortArr = $this->quickSort($this->countArr);
 		
+		//堆排序
+		$sortArr = $this->HeapSort($this->countArr);
 
 		//构建哈夫曼树
 		$huffmanTree = $this->createHuffmanTree($sortArr);
