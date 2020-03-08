@@ -1,9 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\FileCompress;
-use App\Http\Controllers\Controller;
-
-class CompressController extends Controller
+class Compress 
 {
 	//测试文件路径
 	const FILEPATH = "C:/Users/Administrator/Desktop/test.txt";

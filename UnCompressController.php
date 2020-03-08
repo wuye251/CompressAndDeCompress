@@ -1,11 +1,8 @@
 <?php
 
-namespace App\Http\Controllers\FileCompress;
-use App\Http\Controllers\Controller;
 
-// use App\Http\Controllers\FileCompress;
 
-class UnCompressController extends Controller
+class UnCompress
 {
 
 	const FILEPATH = "C:/Users/Administrator/Desktop/test123.compress";

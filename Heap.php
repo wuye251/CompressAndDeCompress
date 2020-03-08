@@ -1,12 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\FileCompress;
-
-
 class Heap {
 
 	//建堆
-	public function AdjustUp()
+	public function AdjustUp($arr)
 	{
 		
 	}
@@ -19,7 +16,7 @@ class Heap {
 
 	
 	//堆排
-	public function HeapSort()
+	public function HeapSort($arr)
 	{
 		
 	}
