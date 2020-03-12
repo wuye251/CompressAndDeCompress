@@ -1,7 +1,5 @@
 <?php
 
-
-
 class UnCompress
 {
 
@@ -134,4 +132,5 @@ class UnCompress
 		return $ret;
 	}
 }
+
 

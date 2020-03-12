@@ -1,9 +1,11 @@
 <?php
 
+include 'Heap.php';
+
 class Compress 
 {
 	//测试文件路径
-	const FILEPATH = "C:/Users/Administrator/Desktop/test.txt";
+	const FILEPATH = "./test.txt";
 	
 	// public $content;
 	public $countArr = array();
@@ -22,22 +24,30 @@ class Compress
 		}
 		//创建压缩文件 并且获取压缩前文件属性 format
 		$compressFile = $this->newCompressFile();
-		
+
 		//文件存在 首先统计文件内容字符个数
-		$this->charCount($content);
+		$this->countArr = $this->charCount($content);
 
 		//将统计的字符进行排序
 		//快排递归层数过多  存在问题
 		//$sortArr = $this->quickSort($this->countArr);
 		
 		//堆排序
-		$sortArr = $this->HeapSort($this->countArr);
+		// $heap = new Heap();
+		// $sortArr = $heap->execute($this->countArr);
+		// print_r($sortArr);exit;
+
+		//usort
+		$sortArr = $this->countArr;
+		usort($sortArr, function($a, $b) {
+			return ($a['count'] < $b['count']) ? -1 : 1; 
+		});
 
 		//构建哈夫曼树
 		$huffmanTree = $this->createHuffmanTree($sortArr);
 
 		//哈夫曼编码
-		$this->codeHuffman(current($huffmanTree),'', $this->dict);
+		$this->codeHuffman(current($huffmanTree), '', $this->dict);
 
 		//压缩文件
 		if (-1 === $this->compressFile($content, $compressFile, $sortArr)) {
@@ -72,6 +82,8 @@ class Compress
 			$index++;
 			$len--;
 		}
+
+		return $this->countArr;
 	}
 
 	//快排将统计的字符出现次数排序
@@ -151,7 +163,11 @@ class Compress
 				'right' => $node2,
 			];
 
-			$huffmanTree = $this->quickSort($huffmanTree);
+			// $huffmanTree = $this->quickSort($huffmanTree);
+			usort($huffmanTree, function($a, $b) {
+				return ($a['count'] < $b['count']) ? -1 : 1; 
+			});
+
 		}
 
 		return $huffmanTree;
@@ -241,3 +257,6 @@ class Compress
 		return $compressFile;
 	}
 }
+
+$compress = new Compress();
+$compress->execute();
