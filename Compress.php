@@ -53,6 +53,7 @@ class Compress
 		if (-1 === $this->compressFile($content, $compressFile, $sortArr)) {
 			return -1;
 		}
+		echo "yes";
 		return 'ok,compress finish';
 
 
@@ -186,16 +187,18 @@ class Compress
 
 	private function compressFile($content, $outputFile, &$countArr)
 	{
+		//压缩文件配置信息序列化
+		//字符转化信息(哈夫曼编码)
+		$stringDict  = serialize($this->dict);
 
-		$stringDict    = serialize($this->dict);
-
-		$header = pack('VVV', strlen($this->format), strlen($stringDict), strlen($content));
+		$header      = pack('V3', strlen($this->format), strlen($stringDict), strlen($content));
 
 		// 字典长度+文件内容长度   写入
 		fwrite($outputFile, $header);
+		//压缩文件后缀记录
+		fwrite($outputFile, $this->format);
 		// //  序列化字典写入
 		fwrite($outputFile, $stringDict);
-
 
 		//文件内容编码写入
 		$len = strlen($content);

@@ -1,9 +1,9 @@
 <?php
 
-class UnCompress
+class DeCompress
 {
 
-	const FILEPATH = "C:/Users/Administrator/Desktop/test123.compress";
+	const FILEPATH = "./test.compress";
 
 	public $format;   
 	public $type;     //读取到解压文件的类型
@@ -13,9 +13,6 @@ class UnCompress
 
 		$inputFile = self::FILEPATH;
 
-		//生成解压文件路径
-		$outputFile = $this->newUnCompressFile();
-
 		//获取压缩文件内容
 		$content = file_get_contents($inputFile);
 
@@ -23,23 +20,28 @@ class UnCompress
 		$arrCountInfo = $this->getCountInfo($content);
 
 		//读取配置信息中压缩文件类型
-		$this->type = unserialize(substr($content, 12, $arrCountInfo['filetype']));
-		//将之前序列化的dictLen反序列化
-		$dict = unserialize(substr($content, 12 + $arrCountInfo['filetype'], $arrCountInfo['dictLen']));
-// 		print_r($dict);exit;
+		//12 = 3个配置信息 每个32字节 4位长度 * 3 = 12
+		// $this->type = unserialize(substr($content, 12, $arrCountInfo['filetype']));
+		$this->type = substr($content, 12, $arrCountInfo['filetype']);
+
+		// //将之前序列化的dictLen反序列化
+		$this->dict = unserialize(substr($content, 12 + $arrCountInfo['filetype'], $arrCountInfo['dictLen']));
 
 		// $dict =  $this->getInfoToUnserialize($content, 'dictLen');
 
 		//将编码 和 键 对换  后面读取文件内容可以通过编码快速找到
-		$dict = array_flip($dict);
+		$this->dict = array_flip($this->dict);
 
 		//记录文件内容长度 以及 文件内容
-		$bin = substr($content, 12 + $arrCountInfo['filetype'] + $arrCountInfo['dictLen']);
+		$zipContent = substr($content, 12 + $arrCountInfo['filetype'] + $arrCountInfo['dictLen']);
 
 		//釋放content内容 防止文件内容过大  内存浪费
 		unset($content);
 
-		$this->getComressFile($bin);
+		//生成解压文件路径
+		$outputFile = $this->newUnCompressFile();
+
+		$this->getComressFile($zipContent, $arrCountInfo['contentLen'], $outputFile);
 			
 		return 'success';
 	}
@@ -60,13 +62,6 @@ class UnCompress
 		return $arrCountInfo;
 	}
 
-// 	private function getInfoToUnserialize($content, $getKey)
-// 	{
-// 		$retInfo = unserialize(substr($content, 8, $content[$getKey]));
-
-// 		return $retInfo;
-// 	}
-
 	private function newUnCompressFile()
 	{
 		//目录
@@ -79,12 +74,14 @@ class UnCompress
 		$arrFileInfo = explode('.',$inputFileName); 
 
 		// $saveName = $arrFileInfo[0] . ".$this->format";
-		$saveName = $arrFileInfo[0] . '1' . "$this->type";
+		$saveName = $arrFileInfo[0] . '1' . ".$this->type";
 
 		//新建文件
 		$saveFilePath = $savePath . "/$saveName" ;
 
-		return $saveFilePath;
+		$deCompressFile = fopen($saveFilePath, 'w');
+
+		return $deCompressFile;
 	}
 
 
@@ -94,19 +91,20 @@ class UnCompress
 	 * @param  [int]    $contendLen [文件长度]
 	 * @param  [PATH] $outputFile   [输出文件]
 	 */
-	private function getComressFile($contend, $contendLen, $outputFile)
+	private function getComressFile($zipContent, $contentLen, $outputFile)
 	{
-		$compContentLen = strlen($bin);
-		
+		$compContentLen = strlen($zipContent);
+
 		$contentIndex = 0;
 		$outputContent = '';
 		//从文件内容开始遍历
 		$curIndex = 0;
 		$codeKey = '';
+		print_r($this->dict);
 
-		while ($contentIndex < $compContentLen && $curIndex < $contendLen) {
+		while ($contentIndex < $compContentLen && $curIndex < $contentLen) {
 			//当前字符的二进制
-			$binaryCh = decbin(ord($bin[$contentIndex]));
+			$binaryCh = decbin(ord($zipContent[$contentIndex]));
 
 			//凑够八个字节  不够向左侧添0  不够8个字节情况 00000001 转为了1
 			$binaryCh = str_pad($binaryCh, 8,'0', STR_PAD_LEFT);
@@ -115,11 +113,11 @@ class UnCompress
 
 			for(; $biteIndex < 8; $biteIndex++) {
 				//每增加一bite都去查找dict是否有对应键
-				$codeKey .= $binaryCh[$biteIndex];
+				$codeKey .= "$binaryCh[$biteIndex]";
 				
 				//如果有对应字典  则将对应的解压字符转换并 添加在输出文件后
 				if (isset($dict[$codeKey])) {
-					$outputContent .= $dict[$codeKey]; 
+					$outputContent .= $this->dict[$codeKey]; 
 					// print_r($outputContent);echo "<br>"; 
 					$codeKey = '';
 					$curIndex++;
@@ -127,10 +125,13 @@ class UnCompress
 			}
 			$contentIndex++;
 		}
-
-		$ret = file_put_contents($outputFile, $outputContent);
+		print_r($outputContent);exit;
+		$ret = fwrite($outputFile, $outputContent);
 		return $ret;
 	}
 }
+
+$decompress = new DeCompress();
+$decompress->execute();
 
 
