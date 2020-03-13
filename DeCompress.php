@@ -3,8 +3,9 @@
 class DeCompress
 {
 
-	const FILEPATH = "./test.compress";
-
+	// const FILEPATH = "./吴烨.compress";
+	const FILEPATH = "./mpTest.compress";
+	
 	public $format;   
 	public $type;     //读取到解压文件的类型
 
@@ -42,7 +43,7 @@ class DeCompress
 		$outputFile = $this->newUnCompressFile();
 
 		$this->getComressFile($zipContent, $arrCountInfo['contentLen'], $outputFile);
-			
+		echo "success";
 		return 'success';
 	}
 
@@ -88,7 +89,7 @@ class DeCompress
 	/**
 	 * 转换解压文件
 	 * @param  [string] $contend    [文件内容]
-	 * @param  [int]    $contendLen [文件长度]
+	 * @param  [int]    $contentLen [文件长度]
 	 * @param  [PATH] $outputFile   [输出文件]
 	 */
 	private function getComressFile($zipContent, $contentLen, $outputFile)
@@ -97,26 +98,29 @@ class DeCompress
 
 		$contentIndex = 0;
 		$outputContent = '';
-		//从文件内容开始遍历
+		//原文件内容位置
 		$curIndex = 0;
 		$codeKey = '';
-		print_r($this->dict);
 
 		while ($contentIndex < $compContentLen && $curIndex < $contentLen) {
 			//当前字符的二进制
 			$binaryCh = decbin(ord($zipContent[$contentIndex]));
-
+			
 			//凑够八个字节  不够向左侧添0  不够8个字节情况 00000001 转为了1
 			$binaryCh = str_pad($binaryCh, 8,'0', STR_PAD_LEFT);
-
+			print($binaryCh);echo"<br>";
+			echo "codekey-->";print($codeKey);echo"<br>";
 			$biteIndex = 0;
 
 			for(; $biteIndex < 8; $biteIndex++) {
+				//如果文件已经遍历完
+				// if ($contentIndex >= $contentLen) break;
+
 				//每增加一bite都去查找dict是否有对应键
 				$codeKey .= "$binaryCh[$biteIndex]";
-				
 				//如果有对应字典  则将对应的解压字符转换并 添加在输出文件后
-				if (isset($dict[$codeKey])) {
+				if (isset($this->dict[$codeKey])) {
+					// print($codeKey);echo"<br>";
 					$outputContent .= $this->dict[$codeKey]; 
 					// print_r($outputContent);echo "<br>"; 
 					$codeKey = '';
@@ -125,7 +129,7 @@ class DeCompress
 			}
 			$contentIndex++;
 		}
-		print_r($outputContent);exit;
+
 		$ret = fwrite($outputFile, $outputContent);
 		return $ret;
 	}

@@ -5,7 +5,9 @@ include 'Heap.php';
 class Compress 
 {
 	//测试文件路径
-	const FILEPATH = "./test.txt";
+	// const FILEPATH = "./test.txt";
+	// const FILEPATH = "./吴烨.pdf";
+	const FILEPATH = "./mpTest.mp4";
 	
 	// public $content;
 	public $countArr = array();
@@ -229,7 +231,7 @@ class Compress
 		//剩余buff中还有内容表示 不够8bite  需要凑够并插入
 		if (!empty($buff)) {
 			$char = bindec(str_pad($buff, 8, '0'));
-			fwrite($outputFile, $char);
+			fwrite($outputFile, chr($char));
 		}		
 		return 'success';
 	}
