@@ -7,7 +7,7 @@ class Compress
 	//测试文件路径
 	// const FILEPATH = "./test.txt";
 	// const FILEPATH = "./吴烨.pdf";
-	const FILEPATH = "./mpTest.mp4";
+	const FILEPATH = "./testFile/mpTest.mp4";
 	
 	// public $content;
 	public $countArr = array();

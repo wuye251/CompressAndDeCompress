@@ -4,7 +4,7 @@ class DeCompress
 {
 
 	// const FILEPATH = "./吴烨.compress";
-	const FILEPATH = "./mpTest.compress";
+	const FILEPATH = "./testFile/mpTest.compress";
 	
 	public $format;   
 	public $type;     //读取到解压文件的类型
