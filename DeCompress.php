@@ -108,8 +108,8 @@ class DeCompress
 			
 			//凑够八个字节  不够向左侧添0  不够8个字节情况 00000001 转为了1
 			$binaryCh = str_pad($binaryCh, 8,'0', STR_PAD_LEFT);
-			print($binaryCh);echo"<br>";
-			echo "codekey-->";print($codeKey);echo"<br>";
+			// print($binaryCh);echo"<br>";
+			// echo "codekey-->";print($codeKey);echo"<br>";
 			$biteIndex = 0;
 
 			for(; $biteIndex < 8; $biteIndex++) {
