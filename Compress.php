@@ -31,19 +31,7 @@ class Compress
 		$this->countArr = $this->charCount($content);
 
 		//将统计的字符进行排序
-		//快排递归层数过多  存在问题
-		//$sortArr = $this->quickSort($this->countArr);
-		
-		//堆排序
-		// $heap = new Heap();
-		// $sortArr = $heap->execute($this->countArr);
-		// print_r($sortArr);exit;
-
-		//usort
-		$sortArr = $this->countArr;
-		usort($sortArr, function($a, $b) {
-			return ($a['count'] < $b['count']) ? -1 : 1; 
-		});
+		$sortArr = $this->sortArr($this->countArr);
 
 		//构建哈夫曼树
 		$huffmanTree = $this->createHuffmanTree($sortArr);
@@ -89,6 +77,24 @@ class Compress
 		return $this->countArr;
 	}
 
+	//统计的字符进行排序
+	private function sortArr(&$countArr) {
+		//快排递归层数过多  存在问题
+		//$sortArr = $this->quickSort($this->countArr);
+		
+		//堆排序
+		// $heap = new Heap();
+		// $sortArr = $heap->execute($this->countArr);
+		// print_r($sortArr);exit;
+
+		//usort
+		$sortArr = $countArr;
+		usort($sortArr, function($a, $b) {
+			return ($a['count'] < $b['count']) ? -1 : 1; 
+		});
+
+		return $sortArr;
+	}
 	//快排将统计的字符出现次数排序
 	private function quickSort($sortArr)
 	{
@@ -261,6 +267,7 @@ class Compress
 
 		return $compressFile;
 	}
+
 }
 
 $compress = new Compress();
