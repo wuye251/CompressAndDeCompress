@@ -5,9 +5,10 @@ include 'Heap.php';
 class Compress 
 {
 	//测试文件路径
-	// const FILEPATH = "./test.txt";
-	// const FILEPATH = "./吴烨.pdf";
-	const FILEPATH = "./testFile/mpTest.mp4";
+	// const FILEPATH = "./testFile/test.txt";
+	// const FILEPATH = "./testFile/php数组底层实现.png";
+	// const FILEPATH = "./testFile/mpTest.mp4";
+	const FILEPATH = "./testFile/testMp4.mp4";
 	
 	// public $content;
 	public $countArr = array();
@@ -43,12 +44,13 @@ class Compress
 		if (-1 === $this->compressFile($content, $compressFile, $sortArr)) {
 			return -1;
 		}
+
+		// fclose($file);
+		fclose($compressFile);
+
 		echo "yes";
 		return 'ok,compress finish';
 
-
-		fclose($file);
-		fclose($compressFile);
 	}
 
 	//遍历文件，统计各个字符个数
@@ -77,21 +79,33 @@ class Compress
 		return $this->countArr;
 	}
 
+
 	//统计的字符进行排序
 	private function sortArr(&$countArr) {
 		//快排递归层数过多  存在问题
 		//$sortArr = $this->quickSort($this->countArr);
 		
-		//堆排序
-		// $heap = new Heap();
-		// $sortArr = $heap->execute($this->countArr);
-		// print_r($sortArr);exit;
+		//键转换   [ch] => [count => 
+		// 					ch    => 
+		// 					]
+		//转换为   [0,1,2..n] => [
+		// 						count=>
+		// 						ch   =>
+		//					 	]
+		foreach ($this->countArr as $ch => $countInfo) {
+			$flipCountInfo[] = $countInfo;
+		}
 
+		// 堆排序
+		$heap = new Heap();
+		$sortArr = $heap->execute($flipCountInfo);
+
+		
 		//usort
-		$sortArr = $countArr;
-		usort($sortArr, function($a, $b) {
-			return ($a['count'] < $b['count']) ? -1 : 1; 
-		});
+		// $sortArr = $countArr;
+		// usort($sortArr, function($a, $b) {
+		// 	return ($a['count'] < $b['count']) ? -1 : 1; 
+		// });
 
 		return $sortArr;
 	}
